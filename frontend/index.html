@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MeterFlow — Usage-Based API Billing</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════
+   METERFLOW · FLORAL SUMMER GLASSMORPHIC THEME
+   ═══════════════════════════════════════════════════ */
+:root {
+  --peach:       #FFB347;
+  --coral:       #FF6B6B;
+  --rose:        #FF8FA3;
+  --blush:       #FFD6E0;
+  --mint:        #A8E6CF;
+  --sage:        #88D8B0;
+  --lavender:    #C9B8E8;
+  --sky:         #87CEEB;
+  --cream:       #FFF8F0;
+  --gold:        #FFD700;
+  --glass-bg:    rgba(255,255,255,0.25);
+  --glass-border:rgba(255,255,255,0.45);
+  --glass-shadow:0 8px 32px rgba(255,107,107,0.12);
+  --text-dark:   #3D2C2C;
+  --text-mid:    #7A5C5C;
+  --text-light:  #B89090;
+  --font-display:'Playfair Display', serif;
+  --font-body:   'DM Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: var(--font-body);
+  min-height: 100vh;
+  background: linear-gradient(135deg,
+    #FFE4E1 0%, #FFF0F5 15%, #E8F5FF 30%,
+    #F0FFF4 50%, #FFF8DC 70%, #FFE4F3 85%, #E8E8FF 100%);
+  background-attachment: fixed;
+  color: var(--text-dark);
+  overflow-x: hidden;
+}
+
+/* ─── Floating petals background ─────────────────── */
+.petal-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.petal {
+  position: absolute;
+  border-radius: 50% 0 50% 0;
+  opacity: 0.18;
+  animation: floatPetal linear infinite;
+}
+@keyframes floatPetal {
+  0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.18; }
+  90%  { opacity: 0.18; }
+  100% { transform: translateY(-20vh) rotate(720deg); opacity: 0; }
+}
+
+/* ─── Layout ──────────────────────────────────────── */
+.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
+
+/* ─── Sidebar ─────────────────────────────────────── */
+.sidebar {
+  width: 260px; min-height: 100vh;
+  background: rgba(255,255,255,0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--glass-border);
+  display: flex; flex-direction: column;
+  padding: 28px 16px;
+  position: fixed; top: 0; left: 0; height: 100vh;
+  box-shadow: 4px 0 30px rgba(255,107,107,0.08);
+  transition: transform 0.3s ease;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 8px 28px; border-bottom: 1px solid rgba(255,255,255,0.5);
+  margin-bottom: 24px;
+}
+.logo-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--coral), var(--rose));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; box-shadow: 0 4px 14px rgba(255,107,107,0.4);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100% { box-shadow: 0 4px 14px rgba(255,107,107,0.4); }
+  50%      { box-shadow: 0 4px 22px rgba(255,107,107,0.7); }
+}
+.logo-text { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text-dark); }
+.logo-sub  { font-size: 10px; color: var(--text-light); letter-spacing: 1px; text-transform: uppercase; }
+
+.nav-section-label {
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--text-light); padding: 0 12px; margin-bottom: 6px; margin-top: 16px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-radius: 14px; cursor: pointer;
+  transition: all 0.25s ease; font-size: 14px; font-weight: 500;
+  color: var(--text-mid); margin-bottom: 2px; border: 1px solid transparent;
+}
+.nav-item:hover {
+  background: rgba(255,255,255,0.5); color: var(--text-dark);
+  border-color: rgba(255,255,255,0.7);
+  transform: translateX(3px);
+}
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(255,143,163,0.15));
+  color: var(--coral); border-color: rgba(255,107,107,0.25);
+  box-shadow: 0 2px 12px rgba(255,107,107,0.12);
+}
+.nav-icon { width: 20px; text-align: center; font-size: 16px; }
+
+.sidebar-footer {
+  margin-top: auto; padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.5);
+}
+.user-pill {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 14px;
+  background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border);
+}
+.user-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose), var(--lavender));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600; color: white;
+}
+.plan-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px;
+  background: linear-gradient(135deg, var(--peach), var(--coral));
+  color: white; font-weight: 600; letter-spacing: 0.5px;
+}
+
+/* ─── Main Content ────────────────────────────────── */
+.main { margin-left: 260px; flex: 1; padding: 32px; min-height: 100vh; }
+
+.page { display: none; animation: fadeSlide 0.4s ease; }
+.page.active { display: block; }
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Page Header ─────────────────────────────────── */
+.page-header { margin-bottom: 28px; }
+.page-title {
+  font-family: var(--font-display);
+  font-size: 32px; font-weight: 700; color: var(--text-dark);
+  display: flex; align-items: center; gap: 10px;
+}
+.page-subtitle { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+
+/* ─── Glass Card ──────────────────────────────────── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(255,107,107,0.16);
+}
+
+/* ─── Stat Cards Grid ─────────────────────────────── */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 20px 22px;
+  box-shadow: var(--glass-shadow);
+  position: relative; overflow: hidden;
+  transition: all 0.3s ease;
+}
+.stat-card::before {
+  content: '';
+  position: absolute; top: -20px; right: -20px;
+  width: 80px; height: 80px; border-radius: 50%;
+  opacity: 0.12;
+}
+.stat-card:nth-child(1)::before { background: var(--coral);   }
+.stat-card:nth-child(2)::before { background: var(--mint);    }
+.stat-card:nth-child(3)::before { background: var(--lavender);}
+.stat-card:nth-child(4)::before { background: var(--peach);   }
+.stat-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 16px 40px rgba(255,107,107,0.18); }
+.stat-icon {
+  font-size: 24px; margin-bottom: 12px;
+  animation: iconBounce 2s ease-in-out infinite;
+}
+@keyframes iconBounce {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+.stat-card:nth-child(2) .stat-icon { animation-delay: 0.5s; }
+.stat-card:nth-child(3) .stat-icon { animation-delay: 1s; }
+.stat-card:nth-child(4) .stat-icon { animation-delay: 1.5s; }
+.stat-value { font-size: 30px; font-weight: 700; color: var(--text-dark); font-family: var(--font-display); }
+.stat-label { font-size: 12px; color: var(--text-light); margin-top: 2px; letter-spacing: 0.3px; }
+.stat-delta {
+  font-size: 12px; margin-top: 8px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 20px;
+}
+.stat-delta.up   { color: #27ae60; background: rgba(39,174,96,0.1); }
+.stat-delta.down { color: #e74c3c; background: rgba(231,76,60,0.1); }
+
+/* ─── Charts ──────────────────────────────────────── */
+.chart-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 24px;
+  box-shadow: var(--glass-shadow);
+  margin-bottom: 24px;
+}
+.chart-title {
+  font-family: var(--font-display); font-size: 18px; font-weight: 600;
+  color: var(--text-dark); margin-bottom: 20px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.bar-chart { display: flex; align-items: flex-end; gap: 10px; height: 180px; padding: 0 4px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; }
+.bar-track { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.bar-fill {
+  width: 100%; border-radius: 8px 8px 0 0; min-height: 4px;
+  background: linear-gradient(180deg, var(--rose) 0%, var(--coral) 100%);
+  transition: height 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative; overflow: hidden;
+}
+.bar-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer { 0%,100%{opacity:0} 50%{opacity:1} }
+.bar-label { font-size: 10px; color: var(--text-light); }
+.bar-val { font-size: 11px; font-weight: 600; color: var(--text-mid); }
+
+/* ─── Tables ──────────────────────────────────────── */
+.glass-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.glass-table thead th {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-light); padding: 8px 16px; text-align: left;
+}
+.glass-table tbody tr {
+  background: rgba(255,255,255,0.3); border-radius: 12px;
+  transition: all 0.2s ease;
+}
+.glass-table tbody tr:hover { background: rgba(255,255,255,0.5); transform: translateX(4px); }
+.glass-table tbody td {
+  padding: 14px 16px; font-size: 13px; color: var(--text-dark);
+}
+.glass-table tbody td:first-child { border-radius: 12px 0 0 12px; }
+.glass-table tbody td:last-child  { border-radius: 0 12px 12px 0; }
+
+/* ─── Buttons ─────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border-radius: 12px; cursor: pointer;
+  font-family: var(--font-body); font-size: 14px; font-weight: 500;
+  border: none; transition: all 0.25s ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--coral) 0%, var(--rose) 100%);
+  color: white; box-shadow: 0 4px 16px rgba(255,107,107,0.35);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(255,107,107,0.5); }
+.btn-glass {
+  background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border); color: var(--text-dark);
+}
+.btn-glass:hover { background: rgba(255,255,255,0.6); transform: translateY(-1px); }
+.btn-danger { background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid rgba(231,76,60,0.2); }
+.btn-danger:hover { background: rgba(231,76,60,0.2); }
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+
+/* ─── Form Elements ───────────────────────────────── */
+.form-group { margin-bottom: 18px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; color: var(--text-mid); margin-bottom: 6px; }
+.form-input {
+  width: 100%; padding: 12px 16px; border-radius: 12px; font-family: var(--font-body);
+  font-size: 14px; color: var(--text-dark);
+  background: rgba(255,255,255,0.5); border: 1px solid var(--glass-border);
+  backdrop-filter: blur(8px); transition: all 0.2s ease; outline: none;
+}
+.form-input:focus {
+  border-color: var(--rose); box-shadow: 0 0 0 3px rgba(255,143,163,0.2);
+  background: rgba(255,255,255,0.7);
+}
+.form-input::placeholder { color: var(--text-light); }
+
+/* ─── Modal ───────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(61,44,44,0.25); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: rgba(255,248,240,0.92);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px; padding: 32px; width: 460px; max-width: 95vw;
+  box-shadow: 0 24px 60px rgba(255,107,107,0.2);
+  transform: scale(0.9) translateY(20px); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-overlay.open .modal { transform: scale(1) translateY(0); }
+.modal-title {
+  font-family: var(--font-display); font-size: 22px; font-weight: 700;
+  color: var(--text-dark); margin-bottom: 24px;
+  display: flex; align-items: center; gap: 10px;
+}
+
+/* ─── Key Display ─────────────────────────────────── */
+.key-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.6); border: 1px solid var(--glass-border);
+  border-radius: 10px; padding: 8px 12px;
+  font-family: monospace; font-size: 12px; color: var(--text-mid);
+  max-width: 100%; overflow: hidden;
+}
+.key-copy {
+  cursor: pointer; padding: 3px 8px; border-radius: 6px;
+  background: rgba(255,107,107,0.1); border: none; color: var(--coral);
+  font-size: 11px; font-weight: 600; transition: all 0.2s;
+}
+.key-copy:hover { background: rgba(255,107,107,0.2); }
+
+/* ─── Status Badges ───────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-active { background: rgba(39,174,96,0.12); color: #27ae60; }
+.badge-inactive { background: rgba(149,165,166,0.15); color: #7f8c8d; }
+.badge-free     { background: rgba(135,206,235,0.2);  color: #2980b9; }
+.badge-pro      { background: rgba(255,107,107,0.15); color: var(--coral); }
+
+/* ─── Plans Grid ──────────────────────────────────── */
+.plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.plan-card {
+  background: var(--glass-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); border-radius: 20px; padding: 24px;
+  text-align: center; transition: all 0.3s ease; cursor: pointer; position: relative;
+}
+.plan-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(255,107,107,0.2); }
+.plan-card.recommended {
+  border-color: var(--coral); background: rgba(255,107,107,0.08);
+}
+.plan-card.recommended::before {
+  content: '🌸 Popular';
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--coral), var(--rose));
+  color: white; font-size: 11px; font-weight: 600; padding: 4px 14px; border-radius: 20px;
+}
+.plan-price {
+  font-family: var(--font-display); font-size: 38px; font-weight: 700;
+  color: var(--text-dark); margin: 12px 0 4px;
+}
+.plan-name { font-size: 16px; font-weight: 600; color: var(--text-mid); text-transform: capitalize; }
+.plan-feature { font-size: 12px; color: var(--text-light); margin: 4px 0; }
+
+/* ─── Toast ───────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 200;
+  background: rgba(255,255,255,0.9); backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border); border-radius: 14px;
+  padding: 14px 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500;
+  max-width: 320px;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left: 3px solid #27ae60; }
+.toast.error   { border-left: 3px solid #e74c3c; }
+
+/* ─── Auth Page ───────────────────────────────────── */
+.auth-page {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1;
+}
+.auth-card {
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border); border-radius: 28px; padding: 44px 40px;
+  width: 440px; max-width: 95vw;
+  box-shadow: 0 24px 80px rgba(255,107,107,0.18);
+  animation: authFloat 6s ease-in-out infinite;
+}
+@keyframes authFloat {
+  0%,100% { transform: translateY(0px); }
+  50%      { transform: translateY(-8px); }
+}
+.auth-logo {
+  text-align: center; margin-bottom: 32px;
+}
+.auth-logo-icon {
+  width: 60px; height: 60px; border-radius: 18px; margin: 0 auto 12px;
+  background: linear-gradient(135deg, var(--coral), var(--rose));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; box-shadow: 0 8px 24px rgba(255,107,107,0.4);
+}
+.auth-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-dark); }
+.auth-sub { font-size: 14px; color: var(--text-light); margin-top: 4px; }
+.auth-toggle { text-align: center; margin-top: 20px; font-size: 13px; color: var(--text-light); }
+.auth-toggle span { color: var(--coral); cursor: pointer; font-weight: 600; }
+.auth-toggle span:hover { text-decoration: underline; }
+
+/* ─── Progress bar ────────────────────────────────── */
+.usage-bar-wrap { background: rgba(0,0,0,0.06); border-radius: 20px; height: 8px; overflow: hidden; margin-top: 6px; }
+.usage-bar-fill { height: 100%; border-radius: 20px; transition: width 1.2s cubic-bezier(0.34,1.56,0.64,1); }
+.usage-bar-fill.low    { background: linear-gradient(90deg, var(--mint), var(--sage)); }
+.usage-bar-fill.medium { background: linear-gradient(90deg, var(--peach), var(--gold)); }
+.usage-bar-fill.high   { background: linear-gradient(90deg, var(--rose), var(--coral)); }
+
+/* ─── Two-col grid ────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ─── Section header ──────────────────────────────── */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+}
+.section-title { font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text-dark); }
+
+/* ─── Empty state ─────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 48px 24px; color: var(--text-light);
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state-msg  { font-size: 15px; }
+
+/* ─── Loading ─────────────────────────────────────── */
+.loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
+.spinner {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 3px solid rgba(255,107,107,0.2);
+  border-top-color: var(--coral);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Floating petals -->
+<div class="petal-bg" id="petalBg"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<!-- Auth View -->
+<div id="authView" class="auth-page" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🌸</div>
+      <div class="auth-title">MeterFlow</div>
+      <div class="auth-sub">Usage-Based API Billing Platform</div>
+    </div>
+    <div id="authForm"></div>
+    <div class="auth-toggle" id="authToggle"></div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div class="layout" id="appView" style="display:none">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">🌸</div>
+      <div>
+        <div class="logo-text">MeterFlow</div>
+        <div class="logo-sub">API Billing</div>
+      </div>
+    </div>
+
+    <div class="nav-section-label">Main</div>
+    <div class="nav-item active" onclick="navigate('dashboard')">
+      <span class="nav-icon">🏠</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="navigate('apis')">
+      <span class="nav-icon">⚡</span> My APIs
+    </div>
+    <div class="nav-item" onclick="navigate('keys')">
+      <span class="nav-icon">🔑</span> API Keys
+    </div>
+
+    <div class="nav-section-label">Analytics</div>
+    <div class="nav-item" onclick="navigate('usage')">
+      <span class="nav-icon">📊</span> Usage Logs
+    </div>
+
+    <div class="nav-section-label">Finance</div>
+    <div class="nav-item" onclick="navigate('billing')">
+      <span class="nav-icon">💳</span> Billing
+    </div>
+    <div class="nav-item" onclick="navigate('plans')">
+      <span class="nav-icon">✨</span> Plans
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <div class="user-avatar" id="sidebarAvatar">?</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-dark)" id="sidebarUsername">Loading…</div>
+          <span class="plan-badge" id="sidebarPlan">free</span>
+        </div>
+        <div style="margin-left:auto;cursor:pointer;font-size:18px" onclick="logout()" title="Logout">👋</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Pages -->
+  <main class="main">
+
+    <!-- ── Dashboard ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title">🌸 Dashboard</div>
+        <div class="page-subtitle">Welcome back! Here's your API overview.</div>
+      </div>
+
+      <div class="stats-grid" id="dashStats">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">📈 Requests — Last 7 Days</div>
+        <div class="bar-chart" id="chartBars"></div>
+      </div>
+
+      <div class="two-col">
+        <div class="glass-card">
+          <div class="section-header">
+            <div class="section-title">⚡ Your APIs</div>
+            <button class="btn btn-primary btn-sm" onclick="navigate('apis')">View All</button>
+          </div>
+          <div id="dashApisList"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="glass-card">
+          <div class="section-header">
+            <div class="section-title">🔑 Active Keys</div>
+            <button class="btn btn-glass btn-sm" onclick="navigate('keys')">Manage</button>
+          </div>
+          <div id="dashKeysList"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── APIs ── -->
+    <div class="page" id="page-apis">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title">⚡ My APIs</div>
+            <div class="page-subtitle">Create and manage your registered APIs</div>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateAPIModal()">＋ New API</button>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div id="apisList"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ── Keys ── -->
+    <div class="page" id="page-keys">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title">🔑 API Keys</div>
+            <div class="page-subtitle">Generate and revoke API keys for your users</div>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateKeyModal()">＋ Generate Key</button>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div id="keysList"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ── Usage ── -->
+    <div class="page" id="page-usage">
+      <div class="page-header">
+        <div class="page-title">📊 Usage Logs</div>
+        <div class="page-subtitle">Every request tracked in real time</div>
+      </div>
+      <div class="stats-grid" id="usageStats">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+      <div class="glass-card">
+        <div class="section-header">
+          <div class="section-title">Recent Requests</div>
+        </div>
+        <div id="usageLogs"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ── Billing ── -->
+    <div class="page" id="page-billing">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="page-title">💳 Billing</div>
+            <div class="page-subtitle">Track costs and generate invoices</div>
+          </div>
+          <button class="btn btn-primary" onclick="calculateBill()">🧮 Calculate This Month</button>
+        </div>
+      </div>
+      <div class="glass-card">
+        <div id="billingList"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ── Plans ── -->
+    <div class="page" id="page-plans">
+      <div class="page-header">
+        <div class="page-title">✨ Plans & Pricing</div>
+        <div class="page-subtitle">Choose the plan that grows with your usage</div>
+      </div>
+      <div class="plans-grid" id="plansGrid">
+        <div class="loading"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   METERFLOW — Client Application
+   ═══════════════════════════════════════════════════ */
+const BASE = "http://localhost:8000/api";
+
+// ── State ─────────────────────────────────────────
+let currentUser = null;
+let appState = { apis: [], keys: [], isLoginMode: true };
+
+// ── Petals ────────────────────────────────────────
+function createPetals() {
+  const bg = document.getElementById("petalBg");
+  const colors = ["#FFB347","#FF8FA3","#FFD6E0","#A8E6CF","#C9B8E8","#FFD700","#87CEEB","#FF6B6B"];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement("div");
+    p.className = "petal";
+    const size = Math.random() * 40 + 15;
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      width:${size}px; height:${size * 0.7}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-duration:${Math.random()*20+15}s;
+      animation-delay:-${Math.random()*20}s;
+      border-radius:${Math.random() > 0.5 ? '50% 0 50% 0' : '0 50% 0 50%'};
+    `;
+    bg.appendChild(p);
+  }
+}
+
+// ── Toast ─────────────────────────────────────────
+function toast(msg, type = "success") {
+  const t = document.getElementById("toast");
+  t.textContent = (type === "success" ? "🌸 " : "⚠️ ") + msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.className = "toast", 3000);
+}
+
+// ── Modal ─────────────────────────────────────────
+function openModal(html) {
+  document.getElementById("modalContent").innerHTML = html;
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal() {
+  document.getElementById("modalOverlay").classList.remove("open");
+}
+document.addEventListener("click", e => {
+  if (e.target.id === "modalOverlay") closeModal();
+});
+
+// ── API Request ────────────────────────────────────
+async function req(path, opts = {}) {
+  const token = localStorage.getItem("mf_token");
+  const headers = { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...opts.headers };
+  try {
+    const res = await fetch(`${BASE}${path}`, { ...opts, headers });
+    if (res.status === 204) return null;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Request failed");
+    return data;
+  } catch (e) {
+    throw e;
+  }
+}
+
+// ── Auth ───────────────────────────────────────────
+function renderAuth() {
+  document.getElementById("appView").style.display = "none";
+  document.getElementById("authView").style.display = "flex";
+
+  const isLogin = appState.isLoginMode;
+  document.getElementById("authForm").innerHTML = `
+    ${!isLogin ? `
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" id="authName" placeholder="Your name" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="authUsername" placeholder="cooldev42" />
+      </div>
+    ` : ""}
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-input" id="authEmail" type="email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="authPass" type="password" placeholder="••••••••" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px"
+      onclick="${isLogin ? 'doLogin' : 'doRegister'}()">
+      ${isLogin ? "🌸 Sign In" : "✨ Create Account"}
+    </button>
+  `;
+  document.getElementById("authToggle").innerHTML = isLogin
+    ? `Don't have an account? <span onclick="toggleAuth()">Sign Up</span>`
+    : `Already have an account? <span onclick="toggleAuth()">Sign In</span>`;
+}
+
+function toggleAuth() {
+  appState.isLoginMode = !appState.isLoginMode;
+  renderAuth();
+}
+
+async function doLogin() {
+  const email = document.getElementById("authEmail").value;
+  const password = document.getElementById("authPass").value;
+  try {
+    const res = await req("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
+    localStorage.setItem("mf_token", res.access_token);
+    localStorage.setItem("mf_user", JSON.stringify(res.user));
+    currentUser = res.user;
+    initApp();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+async function doRegister() {
+  const data = {
+    email: document.getElementById("authEmail").value,
+    password: document.getElementById("authPass").value,
+    username: document.getElementById("authUsername")?.value || "",
+    full_name: document.getElementById("authName")?.value || "",
+  };
+  try {
+    const res = await req("/auth/register", { method: "POST", body: JSON.stringify(data) });
+    localStorage.setItem("mf_token", res.access_token);
+    localStorage.setItem("mf_user", JSON.stringify(res.user));
+    currentUser = res.user;
+    initApp();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+function logout() {
+  localStorage.clear();
+  currentUser = null;
+  renderAuth();
+}
+
+// ── Navigation ─────────────────────────────────────
+function navigate(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.getElementById(`page-${page}`)?.classList.add("active");
+  const navItems = document.querySelectorAll(".nav-item");
+  navItems.forEach(n => { if (n.textContent.toLowerCase().includes(page === "dashboard" ? "dashboard" : page)) n.classList.add("active"); });
+  loadPage(page);
+}
+
+async function loadPage(page) {
+  try {
+    if (page === "dashboard") await loadDashboard();
+    if (page === "apis") await loadAPIs();
+    if (page === "keys") await loadKeys();
+    if (page === "usage") await loadUsage();
+    if (page === "billing") await loadBilling();
+    if (page === "plans") await loadPlans();
+  } catch (e) { toast("Failed to load data. Is the backend running?", "error"); }
+}
+
+// ── Dashboard ──────────────────────────────────────
+async function loadDashboard() {
+  let data;
+  try {
+    data = await req("/dashboard/");
+  } catch {
+    // Use demo data when backend not running
+    data = {
+      stats: { total_apis: 3, active_keys: 7, total_requests: 18420, requests_today: 342, requests_this_month: 9810, avg_response_time_ms: 48.3, successful_requests: 17950, failed_requests: 470 },
+      chart_data: [
+        { date: "Mon", requests: 1200 }, { date: "Tue", requests: 2800 }, { date: "Wed", requests: 1900 },
+        { date: "Thu", requests: 3400 }, { date: "Fri", requests: 2100 }, { date: "Sat", requests: 890 }, { date: "Sun", requests: 342 },
+      ]
+    };
+  }
+  const s = data.stats;
+  document.getElementById("dashStats").innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value">${s.total_apis ?? 0}</div>
+      <div class="stat-label">Total APIs</div>
+      <div class="stat-delta up">↑ Active</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔑</div>
+      <div class="stat-value">${s.active_keys ?? 0}</div>
+      <div class="stat-label">Active Keys</div>
+      <div class="stat-delta up">↑ Healthy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📡</div>
+      <div class="stat-value">${fmtNum(s.requests_this_month ?? 0)}</div>
+      <div class="stat-label">Requests This Month</div>
+      <div class="stat-delta up">↑ 12% vs last</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value">${s.avg_response_time_ms ?? 0}ms</div>
+      <div class="stat-label">Avg Response Time</div>
+      <div class="stat-delta down">↓ Fast</div>
+    </div>
+  `;
+
+  // Chart
+  const bars = data.chart_data || [];
+  const max = Math.max(...bars.map(b => b.requests), 1);
+  document.getElementById("chartBars").innerHTML = bars.map(b => `
+    <div class="bar-col">
+      <div class="bar-val">${b.requests > 999 ? (b.requests/1000).toFixed(1)+"k" : b.requests}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="height:${Math.max(4, (b.requests/max)*100)}%"></div>
+      </div>
+      <div class="bar-label">${b.date}</div>
+    </div>
+  `).join("");
+
+  // Quick lists
+  document.getElementById("dashApisList").innerHTML = `
+    <div style="color:var(--text-light);font-size:13px;padding:8px 0">
+      🌸 Connect to your FastAPI backend to see live data.<br><br>
+      <span style="font-size:12px">Run: <code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px">uvicorn app.main:app --reload</code></span>
+    </div>`;
+  document.getElementById("dashKeysList").innerHTML = `
+    <div style="color:var(--text-light);font-size:13px;padding:8px 0">
+      🔑 Your generated API keys will appear here.
+    </div>`;
+}
+
+// ── APIs Page ──────────────────────────────────────
+async function loadAPIs() {
+  let apis = [];
+  try { apis = await req("/apis/"); appState.apis = apis; } catch { appState.apis = []; }
+  const el = document.getElementById("apisList");
+  if (!apis.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚡</div><div class="empty-state-msg">No APIs yet — create your first one!</div></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <table class="glass-table">
+      <thead><tr>
+        <th>Name</th><th>Version</th><th>Rate Limit</th><th>Status</th><th>Created</th><th>Actions</th>
+      </tr></thead>
+      <tbody>${apis.map(a => `
+        <tr>
+          <td><strong>${a.name}</strong><br><span style="font-size:11px;color:var(--text-light)">${a.description || "No description"}</span></td>
+          <td><span class="badge badge-free">${a.version}</span></td>
+          <td>${a.rate_limit}/hr</td>
+          <td><span class="badge ${a.is_active ? "badge-active" : "badge-inactive"}">${a.is_active ? "● Active" : "● Inactive"}</span></td>
+          <td style="font-size:12px;color:var(--text-light)">${fmtDate(a.created_at)}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteAPI(${a.id})">Revoke</button>
+          </td>
+        </tr>
+      `).join("")}</tbody>
+    </table>`;
+}
+
+function openCreateAPIModal() {
+  openModal(`
+    <div class="modal-title">⚡ Create New API</div>
+    <div class="form-group">
+      <label class="form-label">API Name *</label>
+      <input class="form-input" id="mApiName" placeholder="My Awesome API" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" id="mApiDesc" placeholder="What does this API do?" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Base URL</label>
+      <input class="form-input" id="mApiUrl" placeholder="https://api.example.com" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Version</label>
+      <input class="form-input" id="mApiVer" placeholder="v1" value="v1" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rate Limit (requests/hr)</label>
+      <input class="form-input" id="mApiRate" type="number" value="100" />
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-glass" style="flex:1;justify-content:center" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="createAPI()">🌸 Create</button>
+    </div>
+  `);
+}
+
+async function createAPI() {
+  const data = {
+    name: document.getElementById("mApiName").value,
+    description: document.getElementById("mApiDesc").value,
+    base_url: document.getElementById("mApiUrl").value,
+    version: document.getElementById("mApiVer").value || "v1",
+    rate_limit: parseInt(document.getElementById("mApiRate").value) || 100,
+  };
+  try {
+    await req("/apis/", { method: "POST", body: JSON.stringify(data) });
+    toast("API created successfully!");
+    closeModal(); loadAPIs();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+async function deleteAPI(id) {
+  if (!confirm("Delete this API and all its keys?")) return;
+  try {
+    await req(`/apis/${id}`, { method: "DELETE" });
+    toast("API deleted"); loadAPIs();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+// ── Keys Page ──────────────────────────────────────
+async function loadKeys() {
+  let keys = [];
+  try { keys = await req("/keys/"); } catch {}
+  const el = document.getElementById("keysList");
+  if (!keys.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🔑</div><div class="empty-state-msg">No API keys yet — generate your first key!</div></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <table class="glass-table">
+      <thead><tr><th>Name</th><th>Key</th><th>Status</th><th>Last Used</th><th>Actions</th></tr></thead>
+      <tbody>${keys.map(k => `
+        <tr>
+          <td><strong>${k.name}</strong></td>
+          <td>
+            <div class="key-chip">
+              <span>${k.key.substring(0,24)}…</span>
+              <button class="key-copy" onclick="copyKey('${k.key}')">Copy</button>
+            </div>
+          </td>
+          <td><span class="badge ${k.is_active ? "badge-active" : "badge-inactive"}">${k.is_active ? "● Active" : "● Revoked"}</span></td>
+          <td style="font-size:12px;color:var(--text-light)">${k.last_used ? fmtDate(k.last_used) : "Never"}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="revokeKey(${k.id})">Revoke</button></td>
+        </tr>
+      `).join("")}</tbody>
+    </table>`;
+}
+
+function openCreateKeyModal() {
+  const apis = appState.apis;
+  openModal(`
+    <div class="modal-title">🔑 Generate API Key</div>
+    <div class="form-group">
+      <label class="form-label">Key Name *</label>
+      <input class="form-input" id="mKeyName" placeholder="Production Key" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">For API *</label>
+      <select class="form-input" id="mKeyApiId">
+        <option value="">Select an API...</option>
+        ${apis.map(a => `<option value="${a.id}">${a.name}</option>`).join("")}
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-glass" style="flex:1;justify-content:center" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="createKey()">🔑 Generate</button>
+    </div>
+  `);
+}
+
+async function createKey() {
+  const data = {
+    name: document.getElementById("mKeyName").value,
+    api_id: parseInt(document.getElementById("mKeyApiId").value),
+  };
+  if (!data.name || !data.api_id) { toast("Fill in all fields", "error"); return; }
+  try {
+    const key = await req("/keys/", { method: "POST", body: JSON.stringify(data) });
+    closeModal();
+    openModal(`
+      <div class="modal-title">✅ Key Generated!</div>
+      <p style="font-size:13px;color:var(--text-light);margin-bottom:16px">Copy this key now — it won't be shown again.</p>
+      <div class="key-chip" style="width:100%;overflow:auto">
+        <span id="newKeyVal">${key.key}</span>
+        <button class="key-copy" onclick="copyKey('${key.key}')">Copy</button>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:16px" onclick="closeModal();loadKeys()">Done</button>
+    `);
+    toast("API key generated!");
+  } catch (e) { toast(e.message, "error"); }
+}
+
+async function revokeKey(id) {
+  if (!confirm("Revoke this API key?")) return;
+  try {
+    await req(`/keys/${id}`, { method: "DELETE" });
+    toast("Key revoked"); loadKeys();
+  } catch (e) { toast(e.message, "error"); }
+}
+
+function copyKey(key) {
+  navigator.clipboard.writeText(key).then(() => toast("Copied to clipboard!"));
+}
+
+// ── Usage Page ─────────────────────────────────────
+async function loadUsage() {
+  let summary = { total_requests:0, successful_requests:0, failed_requests:0, avg_response_time_ms:0, requests_today:0, requests_this_month:0 };
+  let logs = [];
+  try {
+    summary = await req("/usage/summary");
+    logs = await req("/usage/logs?limit=20");
+  } catch {}
+
+  const pct = summary.total_requests ? (summary.successful_requests / summary.total_requests * 100).toFixed(1) : 100;
+  document.getElementById("usageStats").innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon">📡</div>
+      <div class="stat-value">${fmtNum(summary.total_requests)}</div>
+      <div class="stat-label">Total Requests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value">${pct}%</div>
+      <div class="stat-label">Success Rate</div>
+      <div class="usage-bar-wrap">
+        <div class="usage-bar-fill ${pct > 95 ? 'low' : pct > 80 ? 'medium' : 'high'}" style="width:${pct}%"></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📅</div>
+      <div class="stat-value">${fmtNum(summary.requests_today)}</div>
+      <div class="stat-label">Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value">${summary.avg_response_time_ms}ms</div>
+      <div class="stat-label">Avg Response Time</div>
+    </div>
+  `;
+
+  const el = document.getElementById("usageLogs");
+  if (!logs.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-msg">No usage logs yet. Start making API requests!</div></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <table class="glass-table">
+      <thead><tr><th>Endpoint</th><th>Method</th><th>Status</th><th>Response Time</th><th>IP</th><th>Time</th></tr></thead>
+      <tbody>${logs.map(l => `
+        <tr>
+          <td style="font-family:monospace;font-size:12px">${l.endpoint || "/"}</td>
+          <td><span class="badge badge-free">${l.method}</span></td>
+          <td><span class="badge ${l.status_code < 400 ? "badge-active" : "badge-inactive"}">${l.status_code || "—"}</span></td>
+          <td style="font-size:12px">${l.response_time_ms ? l.response_time_ms + "ms" : "—"}</td>
+          <td style="font-size:12px;color:var(--text-light)">${l.ip_address || "—"}</td>
+          <td style="font-size:12px;color:var(--text-light)">${fmtDate(l.timestamp)}</td>
+        </tr>
+      `).join("")}</tbody>
+    </table>`;
+}
+
+// ── Billing Page ───────────────────────────────────
+async function loadBilling() {
+  let bills = [];
+  try { bills = await req("/billing/"); } catch {}
+  const el = document.getElementById("billingList");
+  if (!bills.length) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💳</div><div class="empty-state-msg">No billing records yet. Click "Calculate This Month" to generate one.</div></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <table class="glass-table">
+      <thead><tr><th>Period</th><th>Plan</th><th>Requests</th><th>Overage</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody>${bills.map(b => `
+        <tr>
+          <td style="font-size:12px">${fmtDate(b.period_start)} – ${fmtDate(b.period_end)}</td>
+          <td><span class="badge badge-pro" style="text-transform:capitalize">${b.plan}</span></td>
+          <td>${fmtNum(b.total_requests)}</td>
+          <td style="color:${b.overage_requests > 0 ? 'var(--coral)' : 'inherit'}">${fmtNum(b.overage_requests)}</td>
+          <td><strong>$${b.total_cost.toFixed(2)}</strong></td>
+          <td><span class="badge ${b.status === "paid" ? "badge-active" : "badge-inactive"}">${b.status}</span></td>
+        </tr>
+      `).join("")}</tbody>
+    </table>`;
+}
+
+async function calculateBill() {
+  try {
+    const bill = await req("/billing/calculate", { method: "POST" });
+    toast(`Bill calculated: $${bill.total_cost.toFixed(2)}`);
+    navigate("billing");
+  } catch (e) { toast(e.message, "error"); }
+}
+
+// ── Plans Page ─────────────────────────────────────
+async function loadPlans() {
+  let plans = {};
+  try { plans = await req("/billing/plans"); } catch {
+    plans = {
+      free:       { price: 0,   included: 1000,    overage_per_1k: 0 },
+      starter:    { price: 9,   included: 50000,   overage_per_1k: 0.50 },
+      pro:        { price: 49,  included: 500000,  overage_per_1k: 0.20 },
+      enterprise: { price: 299, included: 5000000, overage_per_1k: 0.10 },
+    };
+  }
+  const icons = { free:"🌱", starter:"🌸", pro:"🌺", enterprise:"🏆" };
+  document.getElementById("plansGrid").innerHTML = Object.entries(plans).map(([name, p]) => `
+    <div class="plan-card ${name === "pro" ? "recommended" : ""}">
+      <div style="font-size:32px">${icons[name] || "⭐"}</div>
+      <div class="plan-name">${name}</div>
+      <div class="plan-price">$${p.price}<span style="font-size:16px;color:var(--text-light)">/mo</span></div>
+      <div class="plan-feature">📡 ${fmtNum(p.included || p.requests_per_month || 0)} requests/mo</div>
+      <div class="plan-feature">💰 $${p.overage_per_1k || 0}/1k overage</div>
+      <button class="btn ${name === "pro" ? "btn-primary" : "btn-glass"} btn-sm"
+        style="width:100%;justify-content:center;margin-top:16px">
+        ${currentUser?.plan === name ? "✓ Current" : "Upgrade"}
+      </button>
+    </div>
+  `).join("");
+}
+
+// ── Helpers ────────────────────────────────────────
+function fmtNum(n) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1)+"M";
+  if (n >= 1_000) return (n/1_000).toFixed(1)+"K";
+  return String(n);
+}
+function fmtDate(d) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-IN", { day:"numeric", month:"short", year:"numeric" });
+}
+
+// ── App Init ───────────────────────────────────────
+function initApp() {
+  document.getElementById("authView").style.display = "none";
+  document.getElementById("appView").style.display = "flex";
+  const u = currentUser;
+  if (u) {
+    document.getElementById("sidebarAvatar").textContent = (u.username || u.email || "?")[0].toUpperCase();
+    document.getElementById("sidebarUsername").textContent = u.username || u.email;
+    document.getElementById("sidebarPlan").textContent = u.plan || "free";
+  }
+  loadDashboard();
+}
+
+// ── Boot ───────────────────────────────────────────
+createPetals();
+const storedUser = localStorage.getItem("mf_user");
+const storedToken = localStorage.getItem("mf_token");
+if (storedUser && storedToken) {
+  currentUser = JSON.parse(storedUser);
+  initApp();
+} else {
+  renderAuth();
+}
+</script>
+</body>
+</html>
